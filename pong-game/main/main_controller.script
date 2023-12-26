@@ -1,10 +1,13 @@
 local BALL_OUT_OF_BOUNDS = hash("ball_out_of_bounds")
+local BALL_COLLIDED = hash("ball_collided")
 local UPDATE_LEFT_SCORE = hash('update_left_score')
 local UPDATE_RIGHT_SCORE = hash('update_right_score')
 local GAME_OVER = hash("game_over")
 local START_GAME = hash("start_game")
 
 local MAX_SCORE = 5
+
+local camera = require "orthographic.camera"
 
 local function spawn_ball(self)
 	factory.create('ball_factory#factory', self.ball_initial_pos)
@@ -22,6 +25,7 @@ function init(self)
 	math.randomseed(os.time()) 
 	math.random()
 
+	msg.post("camera", "acquire_camera_focus")
 	msg.post(".", "acquire_input_focus")
 	
 	self.game_width = sys.get_config_int('display.width')
@@ -72,7 +76,8 @@ function on_message(self, message_id, message, sender)
 				return
 			end
 		end
-		
 		spawn_ball(self)
+	elseif message_id == BALL_COLLIDED then
+		msg.post("camera", camera.MSG_SHAKE, { intensity = 0.005, duration = 0.1, direction = "horizontal" })
 	end
 end

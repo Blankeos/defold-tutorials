@@ -1,4 +1,5 @@
 local BALL_OUT_OF_BOUNDS = hash("ball_out_of_bounds")
+local BALL_COLLIDED = hash("ball_collided")
 local COLLISION_RESPONSE = hash("collision_response")
 
 local HORIZONTAL_WALL = hash("horizontal_wall")
@@ -47,6 +48,7 @@ function on_message(self, message_id, message, sender)
 		if message.other_group == HORIZONTAL_WALL and self.previous_other_id ~= other_id then
 			self.direction.y = self.direction.y * -1
 			sound.play("#sound")
+			msg.post("controller#main_controller", BALL_COLLIDED)
 		end
 
 		if message.other_group == VERTICAL_WALL and self.previous_other_id ~= other_id then
@@ -54,6 +56,7 @@ function on_message(self, message_id, message, sender)
 			self.object_speed = math.min(max_object_speed, self.object_speed + 100)
 
 			sound.play("#sound")
+			msg.post("controller#main_controller", BALL_COLLIDED)
 		end
 
 		self.previous_other_id = other_id
