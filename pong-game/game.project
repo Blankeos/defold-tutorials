@@ -13,4 +13,5 @@ input_method = HiddenInputField
 
 [project]
 title = pong
+dependencies#0 = https://github.com/defold/lua-language-server/releases/download/v0.0.5/release.zip
 
