@@ -1,0 +1,53 @@
+local BALL_OUT_OF_BOUNDS = hash("ball_out_of_bounds")
+local COLLISION_RESPONSE = hash("collision_response")
+local TOP_WALL = hash("/wall_top")
+local BOTTOM_WALL = hash("/wall_bottom")
+local LEFT_PADDLE = hash("/left_paddle")
+local RIGHT_PADDLE = hash("/right_paddle")
+
+local initial_object_speed = 300
+
+function init(self)
+	self.object_speed = initial_object_speed
+	self.game_width = sys.get_config_int('display.width')
+	self.object_width = go.get('#sprite', 'size.x')
+
+	local directions = {-1, 1}
+
+	local initial_direction = directions[math.random(#directions)]
+
+	self.direction = vmath.vector3(initial_direction, 1, 0)
+	self.previous_other_id = nil
+end
+
+
+function update(self, dt)
+	local speed = vmath.vector3(self.object_speed * self.direction.x, self.object_speed * self.direction.y, 0)
+
+	local next_pos = go.get_position() + speed * dt
+	
+	if next_pos.x + self.object_width < 0 or next_pos.x + self.object_width > self.game_width then
+		msg.post("controller#main_controller", BALL_OUT_OF_BOUNDS, { x = next_pos.x })
+		go.delete()
+		print("ball out of bounds give point.")
+	end
+
+	go.set_position(next_pos)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == COLLISION_RESPONSE then
+		local other_id = message.other_id
+
+		if other_id == TOP_WALL or other_id == BOTTOM_WALL and self.previous_other_id ~= other_id then
+			self.direction.y = self.direction.y * -1
+		end
+
+		if other_id == LEFT_PADDLE or other_id == RIGHT_PADDLE and self.previous_other_id ~= other_id then
+			self.direction.x = self.direction.x * -1
+			self.object_speed = math.min(initial_object_speed + 500, self.object_speed + 100)
+		end
+
+		self.previous_other_id = other_id
+	end
+end
